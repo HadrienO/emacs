@@ -122,13 +122,6 @@ Return a list of installed packages or nil for every skipped package."
 (tool-bar-mode -1)
 (column-number-mode t)
 
-
-(global-set-key [down-mouse-3] 'browse-url-at-mouse)   ; Make URL clickable
-(global-set-key (kbd "C-x <up>") 'windmove-up)
-(global-set-key (kbd "C-x <down>") 'windmove-down)
-(global-set-key (kbd "C-x <right>") 'windmove-right)
-(global-set-key (kbd "C-x <left>") 'windmove-left)
-
 (defvar mouse-wheel-scroll-window-under-mouse t
   "*When non-nil, wheel scrolling affects window
  beneath the mouse pointer, else the current buffer.")
@@ -154,8 +147,6 @@ Return a list of installed packages or nil for every skipped package."
 (recentf-mode 1)
 
 (require 'org)
-(define-key global-map "\C-cl" 'org-store-link)
-(define-key global-map "\C-ca" 'org-agenda)
 ;; add R and python to languages processed by babel
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -173,7 +164,6 @@ Return a list of installed packages or nil for every skipped package."
 
 (require 'whitespace)
 ;; (global-set-key "\C-c_w" 'whitespace-mode)
-(global-set-key "\C-csw" 'whitespace-mode)
 (set-face-attribute 'whitespace-space nil
                     :foreground "firebrick"
                     :background "#F7E8CC")
