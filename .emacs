@@ -2,7 +2,7 @@
 ;;    -> system-specific init '.emacs' in home/AppData directory
 ;;    -> functions definitions in '/data-windoz/AppData/Emacs/custom-functions.el'
 ;;    -> finalisation steps in '/data-windoz/AppData/Emacs/init-finalisation.el'
-;;
+;;    -> keybinds in '/data-windoz/AppData/Emacs/custom-keybinds.el'
 ;;
 
 ;; -------------------------------------------------------------
@@ -45,6 +45,7 @@ Return a list of installed packages or nil for every skipped package."
              ido-vertical-mode
              smart-tabs-mode
              palette
+             magit
 		     ;;org            ; built-in
 		     ;;flyspell       ; built-in
 		     ;;package        ; built-in
@@ -93,6 +94,7 @@ Return a list of installed packages or nil for every skipped package."
 
 (load "debian-init.el")
 (load "custom-functions.el")
+(load "custom-keybinds.el")
 ;; (load "~/.emacs.d/system-custom-init.el")
 ;; (load "~/custom-functions.el"))
 
