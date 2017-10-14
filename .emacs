@@ -4,7 +4,15 @@
 ;;    -> finalisation steps in '/data-windoz/AppData/Emacs/init-finalisation.el'
 ;;    -> keybinds in '/data-windoz/AppData/Emacs/custom-keybinds.el'
 ;;
+;;
 
+(warn (format
+       (concat
+        "\n - Problem with dired-single-magic-buffer:"
+        "\n->climbing the folders' tree 'above' the dir it was called from"
+        "seems to deactivate the use of the magic-buffer"
+        "and makes dired-subtree buggy"
+        )))
 ;; -------------------------------------------------------------
 ;; --------------  Required packages installation --------------
 ;; -------------------------------------------------------------
@@ -46,6 +54,8 @@ Return a list of installed packages or nil for every skipped package."
              smart-tabs-mode
              palette
              magit
+             dired-subtree
+             dired-single
 		     ;;org            ; built-in
 		     ;;flyspell       ; built-in
 		     ;;package        ; built-in
@@ -94,31 +104,33 @@ Return a list of installed packages or nil for every skipped package."
 
 (load "debian-init.el")
 (load "custom-functions.el")
-(load "custom-keybinds.el")
 ;; (load "~/.emacs.d/system-custom-init.el")
 ;; (load "~/custom-functions.el"))
 
 ;; ------------ General settings
+(defvar col-background-base "#eedcc2")
+(defvar col-foreground-base "#111111")
+(defvar col-cursor-base "red")		 
 
 (setq default-frame-alist
-      '(
-        (top . 000) (left . 335)
+      `((top . 000) (left . 335)
         (width . 80) (height . 43)
-        (cursor-color . "red")
-        (background-color . "#eedcc2") ;; bug here, bkgrnd coulour must be set twice wit diff. colors...
-        (foreground-color . "#111111")
         (vertical-scroll-bars . right)
+        (cursor-color . ,col-cursor-base)
+        (foreground-color . ,col-foreground-base)
+        (background-color . ,col-background-base)
+        (background-color . ,col-background-base)
+        ;; dunno why, but background-color must be added twice to work
+        ;; on the init frame (and initial-frame-alist is nil)
         )
       )
 
-(add-to-list 'default-frame-alist '(background-color . "wheat"))
-      
 (defalias 'yes-or-no-p 'y-or-n-p)
 (delete-selection-mode 1)        ; overwrite selected text
-(show-paren-mode 1)              ; Parentheses matching
-(setq desktop-restore-eager 5)        ; Nbr of buffers immediatly restored at startup
-(desktop-save-mode 0)           ; Turned on at the end of init if all ok
-;; (require 'tool-bar)              ; Disable toolbar
+(show-paren-mode 1)              ; show matching parenthesis
+(setq desktop-restore-eager 5)   ; nbr of buffers immediatly restored at startup
+(desktop-save-mode 0)            ; turned on at the end of init if everything is ok
+;; (require 'tool-bar)           ; disabling toolbar
 (tool-bar-mode -1)
 (column-number-mode t)
 
@@ -153,7 +165,7 @@ Return a list of installed packages or nil for every skipped package."
  '((R . t)
    (python . t)
    (latex . t)
-   ; (emacs-lisp . nil)
+   (emacs-lisp . t)
    ))
 
 ;; increase latex equation size 
@@ -217,6 +229,43 @@ Return a list of installed packages or nil for every skipped package."
           (lambda () (setq indent-tabs-mode t)))
 (add-hook 'javascript-mode-hook
           (lambda () (setq indent-tabs-mode t)))
+
+
+;; dired-subtree customization
+(require 'dired)
+(require 'dired-single)
+(require 'dired-subtree)
+;; (require 'color)
+
+(let ((cnt 0)
+      (bkgrd-sat (hexrgb-saturation col-background-base))
+      (bkgrd-val (hexrgb-value col-background-base)))
+  (while (< cnt 6)
+    (setq cnt (1+ cnt))
+    (set-face-attribute
+     (intern (concat "dired-subtree-depth-"
+                     (int-to-string cnt)
+                     "-face")
+             )
+     nil
+     :background
+     (hexrgb-increment-value
+      (hexrgb-increment-saturation col-background-base
+                                   (* cnt (/ (- 1 bkgrd-sat) 18.0)))
+      (* cnt (/ bkgrd-val -18.0)))
+     )
+    )
+  )
+
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (dired-hide-details-mode t)
+            (setq dired-single-use-magic-buffer t)
+            ))
+
+
+
+;; (set-face-attribute 'dired-subtree-depth-1-face nil :background col-background-base)
 
 
 ;; -------------------------------------------------------------
@@ -492,5 +541,5 @@ Return a list of installed packages or nil for every skipped package."
 ;;       (beginning-of-buffer)
 ;;       (setq file-cache-alist (read (current-buffer)))))
 
-
+(load "custom-keybinds.el")
 (load "init-finalisation.el")
