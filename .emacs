@@ -4,7 +4,7 @@
 ;;    -> finalisation steps in '/data-windoz/AppData/Emacs/init-finalisation.el'
 ;;    -> keybinds in '/data-windoz/AppData/Emacs/custom-keybinds.el'
 ;;
-;;
+;;	see R & ESS section if ESS hangs when starting a new R session
 
 (warn (format
        (concat
@@ -281,28 +281,6 @@ Return a list of installed packages or nil for every skipped package."
 (setq comint-scroll-to-bottom-on-output t)
 (setq comint-move-point-for-output t)
 
-(add-hook 'inferior-ess-mode-hook
-	  '(lambda()
-	     (local-set-key [C-up] 'comint-previous-input)
-	     (local-set-key [C-down] 'comint-next-input)
-         )
-      )
-
-(defun my-ess-mode-keys ()
-  "my personal keybinds for R files."
-  (interactive)
-  (local-set-key [(shift return)] 'my-ess-eval)
-  (local-set-key (kbd "C-c M-c") 'ess-eval-paragraph)
-  )
-
-(add-hook 'ess-mode-hook 'my-ess-mode-keys)
-
-	  ;; '(lambda()
-	    
-      ;;     '(lambda()
-      ;;        (local-set-key "C-c M-c" 'ess-eval-paragraph)))
-
-
 ;; Solve problem if ess.help not attached
 ;; (add-hook 'ess-mode-hook
 ;; 	  'ess--R-load-ESSR        ;worked wiht M-: (ess--R-load-ESSR)
@@ -336,10 +314,6 @@ Return a list of installed packages or nil for every skipped package."
                                        (:eval venv-current-name)
                                        )))
 (venv-workon "theano")
-
-(add-hook 'python-mode-hook '(lambda ()
-     (define-key python-mode-map "\C-m" 'newline-and-indent)))
-    ;; (local-set-key [(shift return)] "\C-c\C-r")))
 
 (setenv "PYTHONPATH" "/home/hadrien/documents/Programming/Libraries/Python/")
 ;; (setenv "PYTHONPATH" (shell-command-to-string "$SHELL --login -c 'echo -n $PYTHONPATH'"))
@@ -438,19 +412,9 @@ Return a list of installed packages or nil for every skipped package."
 ;;             '(("\\<\\(FIXME\\):" 1
 ;;                font-lock-warning-face t)))))
 
-
 ;; -------------------------------------------------------------
 ;; ------------------------   Outline   ------------------------
 ;; -------------------------------------------------------------
-
-(add-hook 'outline-minor-mode-hook
-          (lambda ()
-            (local-set-key (kbd "C-c C-<tab>")
-                           outline-mode-prefix-map)
-            (local-set-key (kbd "C-<tab>")
-                           'outline-toggle-children
-                           )
-        ))
 
 (add-hook 'bibtex-mode-hook 'outline-minor-mode)
 (add-hook 'bibtex-mode-hook 'hide-body)
@@ -490,7 +454,6 @@ Return a list of installed packages or nil for every skipped package."
 
 ;; (my-global-outline-mode 1)
 
-
 ;; -------------------------------------------------------------
 ;; --------------------------   Path   -------------------------
 ;; -------------------------------------------------------------
@@ -502,7 +465,6 @@ Return a list of installed packages or nil for every skipped package."
 ;;   )
 ;; )
 ;; (setq doc-view-ghostscript-program "C:/Program Files/Ghostscript/9.16/bin/gswin64c.exe")
-
 
 ;; -------------------------------------------------------------
 ;; ----------------------  Caching directories  ----------------
@@ -518,8 +480,6 @@ Return a list of installed packages or nil for every skipped package."
 ;;      ;(file-cache-add-directory "~/")
 ;;      ;(file-cache-add-file-list (list "~/foo/bar" "~/baz/bar"))
 ;;      ))
-
-
 
 ;;; ------- if rather create a cache file to load
 
