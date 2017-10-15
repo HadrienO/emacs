@@ -8,10 +8,11 @@
 
 (warn (format
        (concat
-        "\n - Problem with dired-single-magic-buffer:"
-        "\n->climbing the folders' tree 'above' the dir it was called from"
+        "\n - Problem with dired-single-magic-buffer: ..."
+        "\n... climbing the folders' tree 'above' the dir it was called from"
         "seems to deactivate the use of the magic-buffer"
         "and makes dired-subtree buggy"
+        "\n-> caused by symlinks??"
         )))
 ;; -------------------------------------------------------------
 ;; --------------  Required packages installation --------------
@@ -66,46 +67,14 @@ Return a list of installed packages or nil for every skipped package."
 
 (mapcar 'my-ensure-package-installed package-list)
 
-
 ;; -------------------------------------------------------------
 ;; ----------------------  INITIALIZATION  ---------------------
 ;; -------------------------------------------------------------
 
-;; ------------ Linux <-> Win7 compatibility
-
-;; (if (equal system-name "DRIPC")   ;; system-type for by-OS conditions
-;;     (progn
-;;       (setq default-directory "D:/"
-;;             my-file-to-display-at-startup "D:/Documents/Notes/Org/these.org")
-;;       (setq GSdir "C:/Program Files/Ghostscript/9.16/bin/GSWIN64C.EXE")
-;;       ;;---- LaTeX
-;;       (setenv "PATH"
-;;               (concat "C:/Program Files/MiKTeX 2.9/miktex/bin/x64" ";"
-;;                       (getenv "PATH")))
-;;       (setq doc-view-ghostscript-program GSdir)
-;;       ;;---- R & ESS
-;;       (setq inferior-R-program-name "c:/progra~1/R/R-3.0.2/bin/R.exe")
-;;       (add-to-list 'load-path
-;;         "C:\\Program Files (x86)\\GNU Emacs 24.3\\site-lisp\\ess")
-;;       ;;---- Python
-;;       (setenv "PYTHONPATH" "C:\\Python-Anaconda2\\")
-;;       (setq python-shell-interpreter
-;;             "C:\\Python-Anaconda2\\python.exe"
-;;             python-shell-interpreter-args
-;;             "-i C:\\Python-Anaconda2\\Scripts\\ipython2-script.py console --matplotlib=qt")
-;;       )
-;;   )
-
-
 (add-to-list 'load-path "~/.emacs.d/my-lisp")
-;; (defconst shared-config-path "~/.emacs.d/")
 
-;; (load (concat shared-config-path "debian-init.el"))
-
-(load "debian-init.el")
-(load "custom-functions.el")
-;; (load "~/.emacs.d/system-custom-init.el")
-;; (load "~/custom-functions.el"))
+(load "debian-init.el")			; paths and system-specific variables defined here
+(load "custom-functions.el")	; commands and custom functions defined here
 
 ;; ------------ General settings
 (defvar col-background-base "#eedcc2")
@@ -263,10 +232,21 @@ Return a list of installed packages or nil for every skipped package."
             (setq dired-single-use-magic-buffer t)
             ))
 
-
-
-;; (set-face-attribute 'dired-subtree-depth-1-face nil :background col-background-base)
-
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(doc-view-continuous t)
+ '(org-agenda-files (quote ("~/documents/Notes/org/todo.org")))
+ ;; '(preview-gs-command GSdir)
+ '(safe-local-variable-values (quote ((outline-minor-mode)))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
 
 ;; -------------------------------------------------------------
 ;; ------------------------   R & ESS   ------------------------
@@ -290,6 +270,12 @@ Return a list of installed packages or nil for every skipped package."
 ;; -------------------------------------------------------------
 ;; -------------------------   PYTHON   ------------------------
 ;; ------------------------------------------------------------
+
+(setenv "PYTHONPATH" "/home/hadrien/documents/Programming/Libraries/Python/")
+;; (setenv "PYTHONPATH" (shell-command-to-string "$SHELL --login -c 'echo -n $PYTHONPATH'"))
+
+;; set folding option for Python and other languages
+;; (load "outline-mode-folding-python-elisp-shell.el")
 
 ;; (setq python-shell-prompt-regexp "In \\[[0-9]+\\]: "
 ;;       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
@@ -315,24 +301,6 @@ Return a list of installed packages or nil for every skipped package."
                                        )))
 (venv-workon "theano")
 
-(setenv "PYTHONPATH" "/home/hadrien/documents/Programming/Libraries/Python/")
-;; (setenv "PYTHONPATH" (shell-command-to-string "$SHELL --login -c 'echo -n $PYTHONPATH'"))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(doc-view-continuous t)
- '(org-agenda-files (quote ("~/documents/Notes/org/todo.org")))
- ;; '(preview-gs-command GSdir)
- '(safe-local-variable-values (quote ((outline-minor-mode)))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
 ;; -------------------------------------------------------------
 ;; ----------------------   TeX & AUCTEX   ---------------------
@@ -386,17 +354,6 @@ Return a list of installed packages or nil for every skipped package."
          noarg)
         )
       )
-;;-- Personal keybinds (trying to match html-mode amap)
-;; (add-hook 'LaTeX-mode-hook
-;;           (lambda ()
-;;             (local-set-key (kbd "C-c C-e") 'latex-close-block)
-;;             ))
-;; (setq font-latex-match-warning-keywords
-;;       '(
-;; 	;; custom
-;; 	"tocomplete"
-;; 	)
-;;       )
 
 ;; (setq font-latex-match-warning-keywords
 ;;       '(
@@ -404,7 +361,6 @@ Return a list of installed packages or nil for every skipped package."
 ;; 	"tocomplete"
 ;; 	)
 ;;       )
-
 
 ;; (add-hook 'LaTeX-mode-hook
 ;;           (lambda ()
@@ -443,28 +399,12 @@ Return a list of installed packages or nil for every skipped package."
    ("^%subsubsection{\\(.*\\)}" 1 'font-latex-sectioning-4-face t)
    ("^%paragraph{\\(.*\\)}"     1 'font-latex-sectioning-5-face t)))
 
-
-;; set folding option for Python and other languages
-(load "outline-mode-folding-python-elisp-shell.el")
-
 ;; globalizing outline-minor-mode et toggle it on
 ;;outline-minor-mode-prefix
 ;; (define-globalized-minor-mode my-global-outline-mode outline-minor-mode
 ;;   (lambda () (outline-minor-mode 1)))
 
 ;; (my-global-outline-mode 1)
-
-;; -------------------------------------------------------------
-;; --------------------------   Path   -------------------------
-;; -------------------------------------------------------------
-
-;; (setenv "PATH"
-;;   (concat
-;;    "C:/Program Files/MiKTeX 2.9/miktex/bin/x64" ";"
-;;    (getenv "PATH")
-;;   )
-;; )
-;; (setq doc-view-ghostscript-program "C:/Program Files/Ghostscript/9.16/bin/gswin64c.exe")
 
 ;; -------------------------------------------------------------
 ;; ----------------------  Caching directories  ----------------
@@ -501,5 +441,5 @@ Return a list of installed packages or nil for every skipped package."
 ;;       (beginning-of-buffer)
 ;;       (setq file-cache-alist (read (current-buffer)))))
 
-(load "custom-keybinds.el")
-(load "init-finalisation.el")
+(load "custom-keybinds.el")			; custom keybinds defined here
+(load "init-finalisation.el")		; post-init: load session, split frame, ...

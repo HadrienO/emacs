@@ -128,5 +128,12 @@
      ;; (local-set-key [(shift return)] "\C-c\C-r")))
 
 ;; --------------------
+;; LaTeX-mode
+;; (add-hook 'LaTeX-mode-hook
+;;           (lambda ()
+;;             (local-set-key (kbd "C-c C-e") 'latex-close-block)
+;;             ))
+
+;; --------------------
 ;; Defined in .emacs, to move??
 ;; (setq ido-vertical-define-keys 'C-n-C-p-up-and-down)      ; navigate options with up/down
