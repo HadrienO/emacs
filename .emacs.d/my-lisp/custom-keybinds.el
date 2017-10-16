@@ -1,52 +1,68 @@
-;; -------------------------------------------------------------
-;; --------------    Custom Keybinds for Emacs    --------------
-;; -------------------------------------------------------------
-;; 
-;;    ----- Global -----
-;;  C-x <arrow>		windmove-up/down/right/left
-;;  mouse-3			browse-url-at-mouse
-;;
-;;  C-x g			magit-status
-;;  C-x d			dired-single-magic-buffer			repl: ido-list-directory
-;;
-;;  C-c l			org-store-link
-;;  C-c a			org-agenda
-;;
-;;  C-c s w			whitespace-mode
-;;  C-c s c			rainbow-mode
-;;
-;;    ----- Local  -----
-;; ** outline-minor-mode
-;;  C-<tab>			outline-mode-toggle-children
-;;  C-c C-<tab>		outline-mode-toggle-children
-;;
-;; ** dired-mode
-;;  <tab>			dired-subtree-toggle)
-;;  <return>		dired-single-buffer)
-;;  mouse-1			dired-single-buffer-mouse)
-;;  ^				dired-single-buffer ".."
-;;
-;; ** r/ess-mode
-;;  S-<return>		my-ess-eval
-;;  C-c M-c			ess-eval-paragraph
-;;  C-<up>			comint-previous-input (in R terminal)
-;;  C-<down>		comint-next-input (in R terminal)
-;; -------------------------------------------------------------
-;;
-;; Note:	(global-set-key <k> <b>) == (define-key (current-global-map) <k> <b>)
-;; 			(local-set-key <k> <b>)  == (define-key (current-local-map) <k> <b>)
-;;  
-;; ____________________________________________________________
+;; -------------------------------------------------------------------------- ;;
+;;                            Custom Keybinds File                            ;;
+;;           ------------------------------------------------------           ;;
+;; Here are defined all my keybinds for easy lookup and management            ;;
+;;                                                                            ;;
+;;    ----- Global -----                                                      ;;
+;;  C-x <arrow>     windmove-up/down/right/left                               ;;
+;;  mouse-3         browse-url-at-mouse                                       ;;
+;;  M-g M-c         my-go-to-column                                           ;;
+;;  C-x w           my-paste-function                                         ;;
+;;  <f5>            my-revert-buffer-no-confirm                               ;;
+;;                                                                            ;;
+;;  C-x g           magit-status                                              ;;
+;;  C-x d           dired-single-magic-buffer (repl: ido-list-directory)      ;;
+;;                                                                            ;;
+;;  C-c l           org-store-link                                            ;;
+;;  C-c a           org-agenda                                                ;;
+;;                                                                            ;;
+;;  C-c s w         whitespace-mode                                           ;;
+;;  C-c s c         rainbow-mode                                              ;;
+;;                                                                            ;;
+;;    ----- Local  -----                                                      ;;
+;; ** outline-minor-mode                                                      ;;
+;;  C-<tab>         outline-mode-toggle-children                              ;;
+;;  C-c C-<tab>     outline-mode-toggle-children                              ;;
+;;                                                                            ;;
+;; ** dired-mode                                                              ;;
+;;  <tab>           dired-subtree-toggle)                                     ;;
+;;  <return>        dired-single-buffer)                                      ;;
+;;  mouse-1         dired-single-buffer-mouse)                                ;;
+;;  ^               dired-single-buffer ".."                                  ;;
+;;                                                                            ;;
+;; ** r/ess-mode                                                              ;;
+;;  S-<return>      my-ess-eval                                               ;;
+;;  C-c M-c         ess-eval-paragraph                                        ;;
+;;  C-<up>          comint-previous-input (in R terminal)                     ;;
+;;  C-<down>        comint-next-input (in R terminal)                         ;;
+;;                                                                            ;;
+;; ** python                                                                  ;;
+;;  C-m             newline-and-indent                                        ;;
+;;  S-<return>      my-python-send-region                                     ;;
+;;  C-c C-c         my-compile                                                ;;
+;;           ------------------------------------------------------           ;;
+;;                                                                            ;;
+;; Note: (global-set-key ...) == (define-key (current-global-map) ...)        ;;
+;; 		 (local-set-key ...)  == (define-key (current-local-map) ...)         ;;
+;; -------------------------------------------------------------------------- ;;
+
+ 
 
 
 ;; --------------------
-;; Navigation
+;; General keybinds
 (global-set-key (kbd "C-x <up>") 'windmove-up)
 (global-set-key (kbd "C-x <down>") 'windmove-down)
 (global-set-key (kbd "C-x <right>") 'windmove-right)
 (global-set-key (kbd "C-x <left>") 'windmove-left)
 
+(global-set-key (kbd "M-g M-c") 'my-go-to-column)
 (global-set-key [down-mouse-3] 'browse-url-at-mouse)   ; Make URL clickable
+
+(global-set-key "\C-x\w" 'my-paste-function)
+
+(global-set-key (kbd "<f5>") 'my-revert-buffer-no-confirm)
+
 
 ;; --------------------
 ;; Outline-mode
@@ -106,26 +122,32 @@
 ;; --------------------
 ;; R & ESS
 (defun my-ess-mode-keys ()
-  "my personal keybinds for R files."
+  "Personal keybinds for R files."
   (interactive)
   (local-set-key [(shift return)] 'my-ess-eval)
   (local-set-key (kbd "C-c M-c") 'ess-eval-paragraph)
   )
 (add-hook 'ess-mode-hook 'my-ess-mode-keys)
 
-
+(add-hook 'ess-post-run-hook
+          '(lambda()
+             (ess-execute-screen-options)
+             (local-set-key "\C-c\w" 'ess-execute-screen-options)
+             ))
 (add-hook 'inferior-ess-mode-hook
-	  '(lambda()
-	     (local-set-key [C-up] 'comint-previous-input)
-	     (local-set-key [C-down] 'comint-next-input)
-         )
-      )
+          '(lambda()
+             (local-set-key [C-up] 'comint-previous-input)
+             (local-set-key [C-down] 'comint-next-input)
+             ))
 
 ;; --------------------
 ;; Python
-(add-hook 'python-mode-hook '(lambda ()
-     (define-key python-mode-map "\C-m" 'newline-and-indent)))
-     ;; (local-set-key [(shift return)] "\C-c\C-r")))
+(add-hook 'python-mode-hook
+          '(lambda ()
+             (define-key python-mode-map "\C-m" 'newline-and-indent)
+             (local-set-key [(shift return)] 'my-python-send-region)
+             (local-set-key "\C-c\C-c" 'my-compile)
+             ))
 
 ;; --------------------
 ;; LaTeX-mode

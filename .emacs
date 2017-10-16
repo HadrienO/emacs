@@ -55,6 +55,7 @@ Return a list of installed packages or nil for every skipped package."
              smart-tabs-mode
              palette
              magit
+             rebox2
              dired-subtree
              dired-single
 		     ;;org            ; built-in
@@ -110,6 +111,7 @@ Return a list of installed packages or nil for every skipped package."
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
 (setq-default tab-always-indent 'complete)
+(setq compilation-scroll-output t)
 
 (auto-fill-mode -1)                              ; Turn off auto-fill by default
 (remove-hook 'text-mode-hook #'turn-on-auto-fill)
@@ -199,6 +201,11 @@ Return a list of installed packages or nil for every skipped package."
 (add-hook 'javascript-mode-hook
           (lambda () (setq indent-tabs-mode t)))
 
+(require 'rebox2)
+(add-to-list 'rebox-templates
+             '(29 325 "?? ========= ??" "?? box123456 ??" "?? ========= ??")
+             )
+(rebox-register-all-templates)
 
 ;; dired-subtree customization
 (require 'dired)

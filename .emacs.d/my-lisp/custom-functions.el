@@ -1,15 +1,29 @@
-;; ------------ custom keyboard macro
-;; see shortcuts.org
-
+;; -------------------------------------------------------------------------- ;;
+;;                           Custom Functions File                            ;;
+;;           ------------------------------------------------------           ;;
+;; This file contains every functions and commands that I define or           ;;
+;; overwrite myself.                                                          ;;
+;;                                                                            ;;
+;; The majority of these definitions is inspired (if not simply               ;;
+;; copied) from online sources (forums, tutorials, ...). I'll force           ;;
+;; myself to cite original authors as much as possible, but I've              ;;
+;; already lost track of many. I'm really sorry for that, and I'll            ;;
+;; amend the file if I come across the source again.                          ;;
+;;                                                                            ;;
+;; Notes:                                                                     ;;
+;;                                                                            ;;
+;; - New functions' names are prefixed by "my-" for easier search             ;;
+;;   and completion.                                                          ;;
+;;                                                                            ;;
+;; - Some modes' hooks are defined in `.emacs' and `custom-keybinds.el',      ;;
+;;   but they're not meant to use as standalone commands.                     ;;
+;; -------------------------------------------------------------------------- ;;
 
 ;; -------------------------------------------------------------
 ;; ----------------------   OVERWRITING   ----------------------
 ;; -------------------------------------------------------------
 
 ;; ---- Wheel scrolling
-;;
-;; check what are original functions
-
 (defun mouse-wheel-scroll-line (event)
   "Scroll the current buffer by `mouse-wheel-scroll-amount'.
 If mouse-wheel-scroll-window-under-mouse is non-nil, scroll the window
@@ -48,7 +62,6 @@ beneath the mouse pointer, else scroll current buffer."
     (or (eq owin (selected-window))
 	(select-window owin))))
 
-
 ;; ---- Horizontal Scrolling
 ;;
 ;; (DocView mode only)
@@ -67,22 +80,17 @@ beneath the mouse pointer, else scroll current buffer."
 
 ;; (add-hook 'doc-view-mode-hook 'activate-hscroll-hook)
 
-
 ;; -------------------------------------------------------------
 ;; ------------------------   GENERAL   ------------------------
 ;; -------------------------------------------------------------
-;;
-;;  Functions start with 'my-' for completion and easier lookup
-;;  Many of them are stealed from other users,
-;;  I will cite them...
 
 (defun my-revert-buffer-no-confirm ()
-  "Revert buffer without confirmation
+  "Revert buffer without confirmation.
+
 source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el)"
     (interactive)
     (revert-buffer t t)
     )
-(global-set-key (kbd "<f5>") 'my-revert-buffer-no-confirm)
 
 (defun my-paste-function (&optional beg end)
   (interactive)
@@ -98,13 +106,11 @@ source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el)"
     (newline)
     (yank))
   )
-(global-set-key "\C-x\w" 'my-paste-function)
 
 (defun my-go-to-column (column)          
   (interactive "nColumn: ")            
   (move-to-column column t)
   )
-(global-set-key (kbd "M-g M-c") 'my-go-to-column)
 
 (defun my-file-path-to-clipboard ()
   ;; thx to scottfrazer @
@@ -160,57 +166,235 @@ source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el)"
 ;; )
 ;; (global-set-key "\C-csi" 'my-show-indentation) ;bugged
 
-;; Create a commentary box (for header)
-;; -> make one for commented title allowing file hiding/wrapping?
+(defun my-box-comment-region (beg end title)
+  "Make a standadized comment box used for file headers.
 
-;; (defun my-comment-box (pos1 pos2 param1 param2)
-;;   (setq my-comment-box-width 75)
-;;   (setq my-comment-box-height 10)
-;;   (interactive "r\nsParam1: \nsParam2:")
-;;   (message "Buffer Name: %s" (buffer-name))
-;;   ;; locally define start of line char (comment char),
-;;   ;; end of line, and opening/closing line
-;;   (let ((sc (comment-start))
-;; 	(ec (if (string= "" comment-end)
-;; 		comment-start
-;; 	      comment-end))
-;; 	(sc-len (length sc))
-;; 	(ec-len (length ec))
-;; 	(boxl (concat
-;; 	       sol
-;; 	       (make-string (- my-comment-box-width (+ sc-len ec-len)) ?-)
-;; 	       eol))
-;; 	(box-emp (concat
-;; 		  sol
-;; 		  (make-string (- my-comment-box-width (+ sc-len ec-len)) ? )
-;; 		  eol))
-;; 	)
-;;     )
-;;   )
-;; ;; (if (< my-comment-box-width (+ 3 sc-len ec-len))
-;; ;;     (message (
-;; ;; (insert (
-;; ;; )
-;; (insert (format "AAAa: %d,%d,%s,%s" pos1 pos2 param1 param2))
-;; ;; (with-current-buffer (buffer-name)
-;; ;;   (princ (format "AAAa: %d,%d,%s,%s" pos1 pos2 param1 param2)))
-;; 					; (local-set-key "\C-c\w" 'ess-execute-screen-options)
-;; )
+Adapted from Trey Jackson
+   @ https://stackoverflow.com/questions/5558876/a-custom-comment-box-on-emacs
+   see: `my-box-comment-region-fit-text'"
+  (interactive "*r\nsEnter a title (leave empty if not desired): ")
+  (save-restriction
+    (narrow-to-region beg end)
+    (uncomment-region beg end)         ; first, uncomment
+    (let ((start-char comment-start)
+          (end-char comment-end)
+          (tot-len 80)
+          (inwidth 0)
+          (spc-len 0))
+      (if (string= "" comment-end)
+          ;; if 'comment-start' is a single char and 'commend-end'
+          ;; not definded, use two 'comment-start' as border, and
+          ;; set 'end-char' to 'start-char'
+          (progn
+            (if (= 1 (length start-char))
+                (setq start-char (make-string 2 (string-to-char start-char))))
+            (setq end-char start-char))
+        )
+      (setq inwidth (- tot-len 2 (length start-char) (length end-char)))  ; 2 for l/r padding
+      (kill-region beg end t)
+      (with-temp-buffer
+        (insert (make-string inwidth ?-)) ; box top border
+        (newline)
+        (if (not (string= "" title))
+            ;; if non empty, insert and format title (fill & center)
+            (progn
+              (insert title)
+              (setq fill-column (- inwidth 25))
+              (fill-region (point-min) (point-max))
+              (newline)
+              (insert (make-string (- inwidth 20) ?-))
+              (setq fill-column inwidth)
+              (center-region (point-min) (point-max))
+              (goto-char (point-max))
+              (newline)
+              ))
+        (yank)
+        (pop kill-ring) ;so command doesn't modify kill-ring
+        (end-of-line)
+        (if (> (current-column) 0) (newline))
+        (insert (make-string inwidth ?-)) ; box bottom border
+        (string-rectangle (point-min)
+                          (progn
+                            (goto-char (point-max))
+                            (line-beginning-position))
+                          (format "%s " start-char))
+        (goto-char (point-min))
+        (move-to-column (- tot-len (length end-char)))
+        (let ((top (point)))
+          (goto-char (point-max))
+          (move-to-column (- tot-len (length end-char)))
+          (string-rectangle top (point)
+                            (format " %s" start-char)))
+        (end-of-line)
+        (kill-rectangle (point-min) (point)) ;don't append to user kill-ring
+        )
+      (yank-rectangle)
+      (newline)
+      )
+    )
+  )
 
+(defun my-box-comment-region-fit-text (beg end)
+  "Make a standadized comment box which fit the text in the region.
+See `my-box-comment-region' for a box with fixed width.
+See `comment-box' and `rebox-mode' (package 'rebox2').
 
+Script from Trey Jackson
+   @ https://stackoverflow.com/questions/5558876/a-custom-comment-box-on-emacs"
   
-  
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region beg end)
+    (comment-region beg end -1)         ; first, uncomment
+    (string-rectangle (point-min)
+                      (progn (goto-char (point-max)) (line-beginning-position))
+                      "  | ")
+    (goto-char (point-min))
+    (let ((max-len 0))
+      (while (< (point) (point-max))
+        (end-of-line)
+        (setq max-len (max max-len (current-column)))
+        (forward-line 1))
+      (previous-line)
+      (end-of-line)
+      (insert (make-string (- max-len (current-column)) ?\ ))
+      (goto-char (point-min))
+      (end-of-line)
+      (insert (make-string (- max-len (current-column)) ?\ ))
+      (end-of-line)
+      (let ((top (point)))
+        (goto-char (point-max))
+        (previous-line)
+        (end-of-line)
+        (string-rectangle top (point) " | "))
+      (let ((line-seg (concat "  +" (make-string (- max-len 2) ?-) "+ \n")))
+        (goto-char (point-max))
+        (insert line-seg)
+        (goto-char (point-min))
+        (insert line-seg)))
+    (comment-region (point-min) (point-max))))
+
+(defun my-rebox-comment-region (beg end title)
+  "Make a standadized comment box used for file headers, using `rebox-mode'.
+   see: `my-box-comment-region' and `my-box-comment-region-fit-text'
+for variants based on built-in functions only."
+  (interactive "*r\nsEnter a title (leave empty if no title needed): ")
+  (save-restriction
+    (narrow-to-region beg end)
+    (uncomment-region beg end)         ; first, uncomment
+    (kill-region beg end t)
+    (let* ((mode major-mode)
+           (tot-len 80)
+           (style 29)
+          )
+      (with-temp-buffer
+        (funcall mode) ; for rebox to use the correct comment char
+        (if (not (string= "" title))
+            (progn
+              (insert title)
+              (setq fill-column (- tot-len 25))
+              (fill-region (point-min) (point-max))
+              (newline)
+              (insert (make-string (- tot-len 20) ?-))
+              (setq fill-column tot-len)
+              (center-region (point-min) (point-max))
+              (goto-char (point-max))
+              (newline)
+              ))
+        (yank)
+        ;; (pop kill-ring) ;so command doesn't modify kill-ring
+        (end-of-line)
+        (if (= (current-column) 0) (forward-line -1))
+        (move-to-column (- tot-len 2) t)
+        (set-mark (point-min))
+        (rebox-cycle style)
+        (goto-char (point-max))
+        (if (= (current-column) 0) (forward-line -1))
+        (end-of-line)
+        (kill-rectangle (point-min) (point)) ;don't append to user kill-ring
+        )
+      (yank-rectangle)
+      (newline)
+      )
+    )
+  )
+
+(defun my-rebox-comment-region-2 (beg end title)
+  "Make a standadized comment box used for file headers, using `rebox-mode'.
+   see: `my-box-comment-region' and `my-box-comment-region-fit-text'
+for variants based on built-in functions only."
+  (interactive "*r\nsEnter a title (leave empty if no title needed): ")
+  (save-restriction
+    (narrow-to-region beg end)
+    (uncomment-region beg end)          ;first, uncomment
+    (kill-region beg end t)
+    (let* ((mode major-mode)
+           (box-width 80)
+           (rebox-min-fill-column box-width)    ;box width: 80
+           (style 29)                           ;?? ====== ?? borders
+           )
+      (with-temp-buffer
+        (funcall mode) ; for rebox to use the correct comment char
+        (if (not (string= "" title))
+            (progn
+              (insert title)
+              (setq fill-column (- box-width 25))
+              (fill-region (point-min) (point-max))
+              (newline)
+              (insert (make-string (- box-width 20) ?-))
+              (setq fill-column (- box-width 6))
+              (center-region (point-min) (point-max))
+              (goto-char (point-max))
+              (newline)
+              ))
+        (set-mark (point))
+        (yank) ;yank original text in temp buffer
+        (setq fill-column (- box-width 6))
+        (my-fill-lines (mark) (point))  ;fill lines to inside width
+        ;; (pop kill-ring) ;so command doesn't modify kill-ring
+        (end-of-line)
+        (set-mark (point-min))
+        ;; (setq rebox-min-fill-column box-width)    ;box width: 80
+        (rebox-cycle style)
+        (goto-char (point-max))
+        (if (= (current-column) 0)
+            (progn
+              (forward-line -1)
+              (end-of-line)))
+        (kill-rectangle (point-min) (point)) ;don't append to user kill-ring
+        )
+      (yank-rectangle)
+      (newline)
+      )
+    )
+  )
+
+(defun my-fill-lines (beg end)
+  "Fill region line by line, or fill current line if there is no
+active region."
+  (interactive "*r")
+  (save-excursion
+    (save-restriction
+      (if (not (region-active-p))
+          (progn
+            (beginning-of-line)
+            (setq beg (point))
+            (end-of-line)
+            (setq end (point))))
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+        (beginning-of-line)
+        (let ((beg (point)))
+          (end-of-line)
+          (fill-region beg (point) nil t)
+          (forward-line 1)
+          )))))
 ;; -------------------------------------------------------------
 ;; ---------------------   MODE SPECIFIC   ---------------------
 ;; -------------------------------------------------------------
 
 ;; ---- ESS & R
-
-;; Adapt output width to buffer width by Ctr-C + W
-(defun my-ess-post-run-hook ()
-  (ess-execute-screen-options)
-  (local-set-key "\C-c\w" 'ess-execute-screen-options))
-(add-hook 'ess-post-run-hook 'my-ess-post-run-hook)
 
 ;; Problem with following commenting function since update (not required anymore?)
 ;; (defun uncomment-region (beg end)
@@ -264,30 +448,17 @@ the current directory in Python's search path."
 
 (add-hook 'inferior-python-mode-hook 'my-python-reinstate-current-directory)
 
-;; Bind Shift-RET to evaluate current line
-
-; (add-hook 'python-mode-hook
-          ; 'my-python-send-statement)
-
-; (defun my-python-send-statement ()
-  ; (interactive)
-  ; (local-set-key [S-return] 'my-python-send-statement)
-  ; (end-of-line)
-  ; (set-mark (line-beginning-position))
-  ; (call-interactively 'python-shell-send-region)
-  ; (python-shell-send-string "; print()"))
-
- ; (defun my-python-start ()
-    ; (interactive)
-    ; (if (not (member "*Python*" (mapcar (function buffer-name) (buffer-list))))
-      ; (progn
-		; (delete-other-windows)
-		; (setq w1 (selected-window))
-		; (setq w1name (buffer-name))
-		; (setq w2 (split-window w1 nil t))
-		; (run-python)
-		; (set-window-buffer w2 "*Python*")
-		; (set-window-buffer w1 w1name))))
+;; (defun my-python-start ()
+;;   (interactive)
+;;   (if (not (member "*Python*" (mapcar (function buffer-name) (buffer-list))))
+;;       (progn
+;; 		(delete-other-windows)
+;; 		(setq w1 (selected-window))
+;; 		(setq w1name (buffer-name))
+;; 		(setq w2 (split-window w1 nil t))
+;; 		(run-python)
+;; 		(set-window-buffer w2 "*Python*")
+;; 		(set-window-buffer w1 w1name))))
 
 (defun my-python-start ()
 	(interactive)
@@ -309,31 +480,13 @@ the current directory in Python's search path."
          ))
     (python-shell-send-region beg end))
   (python-nav-forward-statement)
-  ;; (let ((beg (cond (beg beg)
-  ;;          ((region-active-p)
-  ;; (region-beginning))
-  ;; (t (line-beginning-position))))
-  ;; (end (cond (end end)
-  ;; ((region-active-p)
-  ;; (copy-marker (region-end)))
-  ;; (t (line-end-position))))))
-  ;;(t (let((skipLine 1))) (line-end-position))))))
-  ;; (when (equal 'skipLine 1) (forward-line 1))
-  ;; (python-shell-send-region beg end)
   ;; (python-next-statement))
   )
-(add-hook 'python-mode-hook
-  '(lambda () (local-set-key [(shift return)] 'my-python-send-region)))
 
 (defun my-compile ()
   "Use compile to run python programs"
   (interactive)
   (compile (concat "python " (buffer-name))))
-(setq compilation-scroll-output t)
-
-(add-hook 'python-mode-hook
-  '(lambda () (local-set-key "\C-c\C-c" 'my-compile)))
-
 
 ;; -------------------------------------------------------------
 ;; ----------------------   PARSING FUN   ----------------------
