@@ -1,53 +1,64 @@
-;; -------------------------------------------------------------------------- ;;
+;; ========================================================================== ;;
 ;;                            Custom Keybinds File                            ;;
-;;           ------------------------------------------------------           ;;
+;;        ------------------------------------------------------------        ;;
 ;; Here are defined all my keybinds for easy lookup and management            ;;
 ;;                                                                            ;;
+;;    ----- Unbinding -----                                                   ;;
+;;  C-z             `suspend-frame' (also bound to C-x C-z)                   ;;
+;;  C-x C-u         `upcase-region'                                           ;;
+;;                                                                            ;;
 ;;    ----- Global -----                                                      ;;
-;;  C-x <arrow>     windmove-up/down/right/left                               ;;
-;;  mouse-3         browse-url-at-mouse                                       ;;
-;;  M-g M-c         my-go-to-column                                           ;;
-;;  C-x w           my-paste-function                                         ;;
-;;  <f5>            my-revert-buffer-no-confirm                               ;;
+;;  C-x <arrow>     `windmove-up'/down/right/left                             ;;
+;;  mouse-3         `browse-url-at-mouse'                                     ;;
+;;  M-g M-c         `my-go-to-column'                                         ;;
+;;  C-x w           `my-paste-function'                                       ;;
+;;  <f5>            `my-revert-buffer-no-confirm'                             ;;
 ;;                                                                            ;;
-;;  C-x g           magit-status                                              ;;
-;;  C-x d           dired-single-magic-buffer (repl: ido-list-directory)      ;;
+;;  C-x g           `magit-status'                                            ;;
+;;  C-x d           `dired-single-magic-buffer' (repl: `ido-list-directory')  ;;
 ;;                                                                            ;;
-;;  C-c l           org-store-link                                            ;;
-;;  C-c a           org-agenda                                                ;;
+;;  C-c l           `org-store-link'                                          ;;
+;;  C-c a           `org-agenda'                                              ;;
 ;;                                                                            ;;
-;;  C-c s w         whitespace-mode                                           ;;
-;;  C-c s c         rainbow-mode                                              ;;
+;;  C-c s w         `whitespace-mode'                                         ;;
+;;  C-c s c         `rainbow-mode'                                            ;;
 ;;                                                                            ;;
 ;;    ----- Local  -----                                                      ;;
-;; ** outline-minor-mode                                                      ;;
-;;  C-<tab>         outline-mode-toggle-children                              ;;
-;;  C-c C-<tab>     outline-mode-toggle-children                              ;;
+;; ** outline-minor-mode **                                                   ;;
+;;  C-<tab>         `outline-mode-toggle-children'                            ;;
+;;  C-c C-<tab>     `outline-mode' prefix command                             ;;
 ;;                                                                            ;;
-;; ** dired-mode                                                              ;;
-;;  <tab>           dired-subtree-toggle)                                     ;;
-;;  <return>        dired-single-buffer)                                      ;;
-;;  mouse-1         dired-single-buffer-mouse)                                ;;
-;;  ^               dired-single-buffer ".."                                  ;;
+;; ** dired-mode **                                                           ;;
+;;  <tab>           `dired-subtree-toggle'                                    ;;
+;;  <return>        `dired-single-buffer'                                     ;;
+;;  mouse-1         `dired-single-buffer-mouse'                               ;;
+;;  ^               (dired-single-buffer "..")                                ;;
 ;;                                                                            ;;
-;; ** r/ess-mode                                                              ;;
-;;  S-<return>      my-ess-eval                                               ;;
-;;  C-c M-c         ess-eval-paragraph                                        ;;
-;;  C-<up>          comint-previous-input (in R terminal)                     ;;
-;;  C-<down>        comint-next-input (in R terminal)                         ;;
+;; ** r/ess-mode **                                                           ;;
+;;  S-<return>      `my-ess-eval'                                             ;;
+;;  C-c M-c         `ess-eval-paragraph'                                      ;;
+;;  C-<up>          `comint-previous-input' (in R terminal)                   ;;
+;;  C-<down>        `comint-next-input' (in R terminal)                       ;;
 ;;                                                                            ;;
-;; ** python                                                                  ;;
-;;  C-m             newline-and-indent                                        ;;
-;;  S-<return>      my-python-send-region                                     ;;
-;;  C-c C-c         my-compile                                                ;;
+;; ** python **                                                               ;;
+;;  C-m             `newline-and-indent'                                      ;;
+;;  S-<return>      `my-python-send-region'                                   ;;
+;;  C-c C-c         `my-compile'                                              ;;
 ;;           ------------------------------------------------------           ;;
 ;;                                                                            ;;
 ;; Note: (global-set-key ...) == (define-key (current-global-map) ...)        ;;
-;; 		 (local-set-key ...)  == (define-key (current-local-map) ...)         ;;
-;; -------------------------------------------------------------------------- ;;
+;;       (local-set-key ...)  == (define-key (current-local-map) ...)         ;;
+;;                                                                            ;;
+;; TODO:                                                                      ;;
+;; - keybind to switch  `org-cycle-include-plain-lists'                       ;;
+;;                                                                            ;;
+;; ========================================================================== ;;
 
- 
-
+;; --------------------
+;; Unbinding
+(global-unset-key (kbd "C-z")) ; suspend-frame (minimize) 
+(global-unset-key (kbd "C-x C-u")) ;upcase-region interfere with `undo',
+                                   ;but I should use "C-_" for that         
 
 ;; --------------------
 ;; General keybinds
@@ -62,7 +73,6 @@
 (global-set-key "\C-x\w" 'my-paste-function)
 
 (global-set-key (kbd "<f5>") 'my-revert-buffer-no-confirm)
-
 
 ;; --------------------
 ;; Outline-mode

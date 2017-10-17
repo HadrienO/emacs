@@ -1,6 +1,6 @@
-;; -------------------------------------------------------------------------- ;;
+;; ========================================================================== ;;
 ;;                           Custom Functions File                            ;;
-;;           ------------------------------------------------------           ;;
+;;        ------------------------------------------------------------        ;;
 ;; This file contains every functions and commands that I define or           ;;
 ;; overwrite myself.                                                          ;;
 ;;                                                                            ;;
@@ -16,8 +16,8 @@
 ;;   and completion.                                                          ;;
 ;;                                                                            ;;
 ;; - Some modes' hooks are defined in `.emacs' and `custom-keybinds.el',      ;;
-;;   but they're not meant to use as standalone commands.                     ;;
-;; -------------------------------------------------------------------------- ;;
+;;   but they're not meant to be use as standalone commands.                  ;;
+;; ========================================================================== ;;
 
 ;; -------------------------------------------------------------
 ;; ----------------------   OVERWRITING   ----------------------
@@ -147,7 +147,8 @@ source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el)"
                        nil)))
   (if format
       (insert (format-time-string format))
-    (insert (format-time-string "%d-%m-%Y at %R"))))
+    (insert (format-time-string "%d-%m-%Y at %R"))
+))
 
 ;; (defun my-show-indentation ()
 ;;   "Toggle displaying of indentation between t and nil"
@@ -166,208 +167,113 @@ source: http://www.emacswiki.org/emacs-en/download/misc-cmds.el)"
 ;; )
 ;; (global-set-key "\C-csi" 'my-show-indentation) ;bugged
 
-(defun my-box-comment-region (beg end title)
-  "Make a standadized comment box used for file headers.
+(defun my-rebox-header (beg end &optional title style width)
+  "Insert a standardized comment box used for file headers.
+Based on package `rebox2'.
 
-Adapted from Trey Jackson
-   @ https://stackoverflow.com/questions/5558876/a-custom-comment-box-on-emacs
-   see: `my-box-comment-region-fit-text'"
-  (interactive "*r\nsEnter a title (leave empty if not desired): ")
-  (save-restriction
-    (narrow-to-region beg end)
-    (uncomment-region beg end)         ; first, uncomment
-    (let ((start-char comment-start)
-          (end-char comment-end)
-          (tot-len 80)
-          (inwidth 0)
-          (spc-len 0))
-      (if (string= "" comment-end)
-          ;; if 'comment-start' is a single char and 'commend-end'
-          ;; not definded, use two 'comment-start' as border, and
-          ;; set 'end-char' to 'start-char'
-          (progn
-            (if (= 1 (length start-char))
-                (setq start-char (make-string 2 (string-to-char start-char))))
-            (setq end-char start-char))
-        )
-      (setq inwidth (- tot-len 2 (length start-char) (length end-char)))  ; 2 for l/r padding
-      (kill-region beg end t)
-      (with-temp-buffer
-        (insert (make-string inwidth ?-)) ; box top border
-        (newline)
-        (if (not (string= "" title))
-            ;; if non empty, insert and format title (fill & center)
-            (progn
-              (insert title)
-              (setq fill-column (- inwidth 25))
-              (fill-region (point-min) (point-max))
-              (newline)
-              (insert (make-string (- inwidth 20) ?-))
-              (setq fill-column inwidth)
-              (center-region (point-min) (point-max))
-              (goto-char (point-max))
-              (newline)
-              ))
-        (yank)
-        (pop kill-ring) ;so command doesn't modify kill-ring
-        (end-of-line)
-        (if (> (current-column) 0) (newline))
-        (insert (make-string inwidth ?-)) ; box bottom border
-        (string-rectangle (point-min)
-                          (progn
-                            (goto-char (point-max))
-                            (line-beginning-position))
-                          (format "%s " start-char))
-        (goto-char (point-min))
-        (move-to-column (- tot-len (length end-char)))
-        (let ((top (point)))
-          (goto-char (point-max))
-          (move-to-column (- tot-len (length end-char)))
-          (string-rectangle top (point)
-                            (format " %s" start-char)))
-        (end-of-line)
-        (kill-rectangle (point-min) (point)) ;don't append to user kill-ring
-        )
-      (yank-rectangle)
-      (newline)
-      )
-    )
-  )
+If there is an active region, wrap the box around.
+If there is no active region and the cursor is within a paragraph,
+the box is wrapped around the paragraph.
+If there is no active region and the cursor is at a blank line, an
+empty template box is created.
 
-(defun my-box-comment-region-fit-text (beg end)
-  "Make a standadized comment box which fit the text in the region.
-See `my-box-comment-region' for a box with fixed width.
-See `comment-box' and `rebox-mode' (package 'rebox2').
+With a prefix argument, prompt for the box style and width. In any
+case, the box won't be narrower than the longest word in the
+region.
 
-Script from Trey Jackson
-   @ https://stackoverflow.com/questions/5558876/a-custom-comment-box-on-emacs"
+Notes: 'title' is not displayed as a rebox's title. Instead, it
+is printed as a centered text followed by a sep-line in the top
+of the box.
+
+TOFIX:
+ - if an unrecognized style is inputted, `rebox-cycle' will fail but
+   region will still be killed. For now, let the killed region store
+   in the kill ring to recover from this situation.
+
+ - when a title is set, `rebox-cycle' may not properly recognize box's
+   borders.
+
+ - if every line in the region/paragraph starts with leading
+   whitespaces, the box itself will be indented (expected behavior of
+   `rebox-cycle').
+
+ - it happens that the blank line preceding the paragraph is included
+   in the box when `mark-paragraph' is used at point (no active region)."
   
-  (interactive "r")
-  (save-restriction
-    (narrow-to-region beg end)
-    (comment-region beg end -1)         ; first, uncomment
-    (string-rectangle (point-min)
-                      (progn (goto-char (point-max)) (line-beginning-position))
-                      "  | ")
-    (goto-char (point-min))
-    (let ((max-len 0))
-      (while (< (point) (point-max))
-        (end-of-line)
-        (setq max-len (max max-len (current-column)))
-        (forward-line 1))
-      (previous-line)
-      (end-of-line)
-      (insert (make-string (- max-len (current-column)) ?\ ))
-      (goto-char (point-min))
-      (end-of-line)
-      (insert (make-string (- max-len (current-column)) ?\ ))
-      (end-of-line)
-      (let ((top (point)))
-        (goto-char (point-max))
-        (previous-line)
-        (end-of-line)
-        (string-rectangle top (point) " | "))
-      (let ((line-seg (concat "  +" (make-string (- max-len 2) ?-) "+ \n")))
-        (goto-char (point-max))
-        (insert line-seg)
-        (goto-char (point-min))
-        (insert line-seg)))
-    (comment-region (point-min) (point-max))))
-
-(defun my-rebox-comment-region (beg end title)
-  "Make a standadized comment box used for file headers, using `rebox-mode'.
-   see: `my-box-comment-region' and `my-box-comment-region-fit-text'
-for variants based on built-in functions only."
-  (interactive "*r\nsEnter a title (leave empty if no title needed): ")
-  (save-restriction
-    (narrow-to-region beg end)
-    (uncomment-region beg end)         ; first, uncomment
-    (kill-region beg end t)
-    (let* ((mode major-mode)
-           (tot-len 80)
-           (style 29)
+  (interactive (cond
+                (current-prefix-arg
+                 (list
+                  (mark) (point)
+                  (read-from-minibuffer "Title: ")
+                  (read-from-minibuffer "Style (default to 29): " nil nil t nil "29")
+                  (read-from-minibuffer "Width (default to 80): " nil nil t nil "80")))
+                (t
+                 (list
+                  (mark) (point)
+                  (read-from-minibuffer "Title: ")
+                  29
+                  80))))
+  (save-excursion
+    (save-restriction
+      (let* ((mode major-mode)
+             (at-blank-line nil)
+             ;; (box-width width)
+             (rebox-min-fill-column width)    ;box width: 80
+             )
+        (if (not (region-active-p))
+            (progn
+              (beginning-of-line)
+              (if (search-forward-regexp "^\\s-*$" (line-end-position) t)
+                  ;; if cursor at blank line, make fill the box with a
+                  ;; template
+                  (progn
+                    (warn "File header box template not yet implemented!")
+                    (setq at-blank-line t)
+                    (setq beg (line-beginning-position)
+                          end (line-beginning-position)))
+                ;; if cursor within a paragraph, mark it
+                (mark-paragraph)
+                (setq beg (point) end (mark))) 
+              ))
+        (narrow-to-region beg end)
+        (uncomment-region beg end)          ;first, uncomment
+        (kill-region beg end t)
+        (with-temp-buffer
+          (funcall mode) ; for rebox to use the correct comment char
+          (if (not (string= "" title))
+              (progn
+                (insert title)
+                (setq fill-column (- width 25))
+                (fill-region (point-min) (point-max))
+                (newline)
+                (insert (make-string (- width 20) ?-))
+                (setq fill-column (- width 6))
+                (center-region (point-min) (point-max))
+                (goto-char (point-max))
+                (newline)
+                ))
+          (set-mark (point))
+          (yank)                  ;yank original text in temp buffer
+          ;; (pop kill-ring)         ;so command doesn't modify kill-ring
+          (if at-blank-line (insert "...\n..."))
+          (setq fill-column (- width 6))
+          (my-fill-lines (mark) (point))  ;fill lines to inside width
+          (end-of-line)
+          (set-mark (point-min))
+          ;; (setq rebox-min-fill-column width)    ;box width: 80
+          (rebox-cycle style)
+          (goto-char (point-max))
+          (if (= (current-column) 0)
+              (progn
+                (forward-line -1)
+                (end-of-line)))
+          (kill-rectangle (point-min) (point)) ;don't append to user kill-ring
           )
-      (with-temp-buffer
-        (funcall mode) ; for rebox to use the correct comment char
-        (if (not (string= "" title))
-            (progn
-              (insert title)
-              (setq fill-column (- tot-len 25))
-              (fill-region (point-min) (point-max))
-              (newline)
-              (insert (make-string (- tot-len 20) ?-))
-              (setq fill-column tot-len)
-              (center-region (point-min) (point-max))
-              (goto-char (point-max))
-              (newline)
-              ))
-        (yank)
-        ;; (pop kill-ring) ;so command doesn't modify kill-ring
-        (end-of-line)
-        (if (= (current-column) 0) (forward-line -1))
-        (move-to-column (- tot-len 2) t)
-        (set-mark (point-min))
-        (rebox-cycle style)
-        (goto-char (point-max))
-        (if (= (current-column) 0) (forward-line -1))
-        (end-of-line)
-        (kill-rectangle (point-min) (point)) ;don't append to user kill-ring
+        (yank-rectangle)
+        (newline)
         )
-      (yank-rectangle)
-      (newline)
-      )
+      ))
     )
-  )
-
-(defun my-rebox-comment-region-2 (beg end title)
-  "Make a standadized comment box used for file headers, using `rebox-mode'.
-   see: `my-box-comment-region' and `my-box-comment-region-fit-text'
-for variants based on built-in functions only."
-  (interactive "*r\nsEnter a title (leave empty if no title needed): ")
-  (save-restriction
-    (narrow-to-region beg end)
-    (uncomment-region beg end)          ;first, uncomment
-    (kill-region beg end t)
-    (let* ((mode major-mode)
-           (box-width 80)
-           (rebox-min-fill-column box-width)    ;box width: 80
-           (style 29)                           ;?? ====== ?? borders
-           )
-      (with-temp-buffer
-        (funcall mode) ; for rebox to use the correct comment char
-        (if (not (string= "" title))
-            (progn
-              (insert title)
-              (setq fill-column (- box-width 25))
-              (fill-region (point-min) (point-max))
-              (newline)
-              (insert (make-string (- box-width 20) ?-))
-              (setq fill-column (- box-width 6))
-              (center-region (point-min) (point-max))
-              (goto-char (point-max))
-              (newline)
-              ))
-        (set-mark (point))
-        (yank) ;yank original text in temp buffer
-        (setq fill-column (- box-width 6))
-        (my-fill-lines (mark) (point))  ;fill lines to inside width
-        ;; (pop kill-ring) ;so command doesn't modify kill-ring
-        (end-of-line)
-        (set-mark (point-min))
-        ;; (setq rebox-min-fill-column box-width)    ;box width: 80
-        (rebox-cycle style)
-        (goto-char (point-max))
-        (if (= (current-column) 0)
-            (progn
-              (forward-line -1)
-              (end-of-line)))
-        (kill-rectangle (point-min) (point)) ;don't append to user kill-ring
-        )
-      (yank-rectangle)
-      (newline)
-      )
-    )
-  )
 
 (defun my-fill-lines (beg end)
   "Fill region line by line, or fill current line if there is no

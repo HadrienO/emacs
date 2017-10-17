@@ -1,10 +1,18 @@
-;; .emacs has been splitted:
-;;    -> system-specific init '.emacs' in home/AppData directory
-;;    -> functions definitions in '/data-windoz/AppData/Emacs/custom-functions.el'
-;;    -> finalisation steps in '/data-windoz/AppData/Emacs/init-finalisation.el'
-;;    -> keybinds in '/data-windoz/AppData/Emacs/custom-keybinds.el'
-;;
-;;	see R & ESS section if ESS hangs when starting a new R session
+;; ========================================================================== ;;
+;;                            Emacs Configuration                             ;;
+;;        ------------------------------------------------------------        ;;
+;;                                                                            ;;
+;; Configuration is split between different files:                            ;;
+;;  - this '.emacs'           general and system-specific config              ;;
+;;  + in '.emacs.d/my-lisp/                                                   ;;
+;;    - custom-functions.el   custom function definitions                     ;;
+;;    - custom-keybinds.el    custom keybinds definitions                     ;;
+;;    - init-finalization.el  session custom to run if everything went ok     ;;
+;;                                                                            ;;
+;; Notes:                                                                     ;;
+;;  - see R & ESS section if ESS hangs when starting a new R session          ;;
+;; ========================================================================== ;;
+
 
 (warn (format
        (concat
@@ -123,7 +131,7 @@ Return a list of installed packages or nil for every skipped package."
      "Text deleted this way cannot be yanked back!\n")
 (put 'kill-sentence 'disabled
      "Warning: sentence is not always properly defined!\n")
-(put 'upcase-region 'disabled nil)
+;; (put 'upcase-region 'disabled nil) ; remove keybind instead
 ;;-----
 
 (require 'recentf)    ; Recently opened documents
